@@ -1,6 +1,6 @@
 package = "platform"
 
-version = "0.0.1"
+version = "0-0-1"
 
 source = {
    url = "git://github.com/shmel1k/platform.git",
