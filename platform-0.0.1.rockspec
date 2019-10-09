@@ -3,7 +3,7 @@ package = "platform"
 version = "0.0.1"
 
 source = {
-   url = "git@gitlab.city-srv.ru:a.petrukhin/platform.git",
+   url = "git://github.com/shmel1k/platform.git",
    branch = "master"
 }
 
