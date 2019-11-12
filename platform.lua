@@ -9,8 +9,8 @@ metrics.enable_default_metrics()
 local httpd = require('http.server')
 local http_handler = require('metrics.plugins.prometheus').collect_http
 
-local function_calls = metrics.counter('metrics.function.calls')
-local function_execution_time = metrics.histogram('metrics.function.execution_time')
+local function_calls = metrics.counter('metrics_function_calls')
+local function_execution_time = metrics.histogram('metrics_function_execution_time')
 
 local function start_metrics_server(port)
     httpd.new('0.0.0.0', port):route({
