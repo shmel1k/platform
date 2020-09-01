@@ -1,7 +1,7 @@
 require('strict').on()
 
 log = require('log')
-os = require('os')
+clock = require('clock')
 metrics = require('metrics')
 
 metrics.enable_default_metrics()
@@ -33,9 +33,9 @@ local function wrap_func(function_name, func)
             method = function_name,
         })
 
-        local start = os.clock()
+        local start = clock.monotonic()
         local response = tail(pcall(func, ...))
-        local finish = os.clock()
+        local finish = clock.monotonic()
 
         function_execution_time:observe(finish - start, {
             method = function_name,
