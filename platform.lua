@@ -11,6 +11,8 @@ local http_handler = require('metrics.plugins.prometheus').collect_http
 
 local function_calls = metrics.counter('metrics_function_calls')
 local function_execution_time = metrics.histogram('metrics_function_execution_time')
+local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time')
+
 
 local function start_metrics_server(port)
     httpd.new('0.0.0.0', port):route({
@@ -34,14 +36,17 @@ local function wrap_func(function_name, func)
         })
 
         local start = clock.monotonic()
-        local response = tail(pcall(func, ...))
+        local response = clock.bench(func, ...)
         local finish = clock.monotonic()
 
         function_execution_time:observe(finish - start, {
             method = function_name,
         })
+        function_cpu_execution_time:observe(response[1], {
+            method = function_name,
+        })
 
-        return response
+        return response[2]
     end
 end
 
