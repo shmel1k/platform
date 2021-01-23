@@ -3,6 +3,7 @@ require('strict').on()
 log = require('log')
 clock = require('clock')
 metrics = require('metrics')
+math = require('math')
 
 metrics.enable_default_metrics()
 
@@ -28,16 +29,21 @@ local function tail(status, ...)
     return ...
 end
 
+local ABS = math.abs
+
 local function wrap_func(function_name, func)
     return function(...)
         local start = clock.monotonic()
         local response = clock.bench(func, ...)
         local finish = clock.monotonic()
 
-        function_execution_time:observe(finish - start, {
+        local diff = ABS(finish - start)
+        function_execution_time:observe(diff, {
             method = function_name,
         })
-        function_cpu_execution_time:observe(response[1], {
+
+        local exec_time = ABS(response[1])
+        function_cpu_execution_time:observe(exec_time, {
             method = function_name,
         })
 
