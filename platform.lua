@@ -13,13 +13,16 @@ local http_handler = require('metrics.plugins.prometheus').collect_http
 local function_execution_time = metrics.histogram('metrics_function_execution_time')
 local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time')
 
-
 local function start_metrics_server(port)
-    httpd.new('0.0.0.0', port):route({
+    local server = httpd.new('0.0.0.0', port)
+    local router = require('http.router').new({})
+    router:route({
         path = '/metrics',
         public = true,
         method = 'GET',
-    }, http_handler):start()
+    }, http_handler)
+    server:set_router(router)
+    server:start()
 end
 
 local function tail(status, ...)
