@@ -10,8 +10,11 @@ metrics.enable_default_metrics()
 local httpd = require('http.server')
 local http_handler = require('metrics.plugins.prometheus').collect_http
 
-local function_execution_time = metrics.histogram('metrics_function_execution_time')
-local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time')
+local INF = math.huge
+local DEFAULT_BUCKETS = {.0001, .0005, .001, .005, .01, .025, .05, .075, .1, .25, .5, 1, INF}
+
+local function_execution_time = metrics.histogram('metrics_function_execution_time', 'Real execution time', DEFAULT_BUCKETS)
+local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time', 'Spent only cpu time', DEFAULT_BUCKETS)
 
 local function start_metrics_server(port)
     local server = httpd.new('0.0.0.0', port)
