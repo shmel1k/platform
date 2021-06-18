@@ -28,11 +28,10 @@ local function start_metrics_server(port)
     server:start()
 end
 
-local function tail(status, ...)
-    if not status then
-        error(..., 2)
+local function execution(func)
+    return function(...)
+        return pcall(func)
     end
-    return ...
 end
 
 local ABS = math.abs
@@ -40,7 +39,7 @@ local ABS = math.abs
 local function wrap_func(function_name, func)
     return function(...)
         local start = clock.monotonic()
-        local response = clock.bench(func, ...)
+        local response = clock.bench(execution(func), ...)
         local finish = clock.monotonic()
 
         local diff = ABS(finish - start)
@@ -52,8 +51,11 @@ local function wrap_func(function_name, func)
         function_cpu_execution_time:observe(exec_time, {
             method = function_name,
         })
+        if not response[2] then
+            error(..., 2)
+        end
 
-        return response[2]
+        return response[3]
     end
 end
 
