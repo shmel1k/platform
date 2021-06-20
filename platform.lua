@@ -10,8 +10,12 @@ metrics.enable_default_metrics()
 local httpd = require('http.server')
 local http_handler = require('metrics.plugins.prometheus').collect_http
 
-local function_execution_time = metrics.histogram('metrics_function_execution_time')
-local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time')
+local INF = math.huge
+local DEFAULT_BUCKETS = {.0001, .0005, .001, .005, .01, .025, .05, .075, .1, .25, .5, 1, INF}
+
+local function_execution_time = metrics.histogram('metrics_function_execution_time', 'Real execution time', DEFAULT_BUCKETS)
+local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time', 'Spent only cpu time', DEFAULT_BUCKETS)
+local requests_error_counter = metrics.counter('requests_error_total')
 
 local function start_metrics_server(port)
     local server = httpd.new('0.0.0.0', port)
@@ -25,11 +29,10 @@ local function start_metrics_server(port)
     server:start()
 end
 
-local function tail(status, ...)
-    if not status then
-        error(..., 2)
+local function execution(func)
+    return function(...)
+        return pcall(func)
     end
-    return ...
 end
 
 local ABS = math.abs
@@ -37,7 +40,7 @@ local ABS = math.abs
 local function wrap_func(function_name, func)
     return function(...)
         local start = clock.monotonic()
-        local response = clock.bench(func, ...)
+        local response = clock.bench(execution(func), ...)
         local finish = clock.monotonic()
 
         local diff = ABS(finish - start)
@@ -49,8 +52,12 @@ local function wrap_func(function_name, func)
         function_cpu_execution_time:observe(exec_time, {
             method = function_name,
         })
+        if not response[2] then
+            requests_error_counter:inc(1, {method = function_name})
+            error(..., 2)
+        end
 
-        return response[2]
+        return response[3]
     end
 end
 
