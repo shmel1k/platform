@@ -15,6 +15,7 @@ local DEFAULT_BUCKETS = {.0001, .0005, .001, .005, .01, .025, .05, .075, .1, .25
 
 local function_execution_time = metrics.histogram('metrics_function_execution_time', 'Real execution time', DEFAULT_BUCKETS)
 local function_cpu_execution_time = metrics.histogram('metrics_function_cpu_execution_time', 'Spent only cpu time', DEFAULT_BUCKETS)
+local requests_error_counter = metrics.counter('requests_error_total')
 
 local function start_metrics_server(port)
     local server = httpd.new('0.0.0.0', port)
@@ -52,6 +53,7 @@ local function wrap_func(function_name, func)
             method = function_name,
         })
         if not response[2] then
+            requests_error_counter:inc(1, {method = function_name})
             error(..., 2)
         end
 
