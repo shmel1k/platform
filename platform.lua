@@ -54,7 +54,7 @@ local function wrap_func(function_name, func)
         })
         if not response[2] then
             requests_error_counter:inc(1, {method = function_name})
-            error(..., 2)
+            error(response[3])
         end
 
         return response[3]
