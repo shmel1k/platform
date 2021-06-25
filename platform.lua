@@ -31,7 +31,7 @@ end
 
 local function execution(func)
     return function(...)
-        return pcall(func)
+        return pcall(func, ...)
     end
 end
 
